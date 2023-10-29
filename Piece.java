@@ -21,6 +21,14 @@ public class Piece {
         return this.king;
     }
 
+    public Position getPosition() {
+        return this.position;
+    }
+    
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
     public int getX() {
         return this.position.getX();
     }
@@ -32,5 +40,14 @@ public class Piece {
     @Override
     public String toString(){
         return "Piece: " + colour + " at (" + this.getX() + ", " + this.getY() + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Piece) {
+            Piece p = (Piece) o;
+            return (this.colour == p.getColour() && this.position.equals(p.getPosition()));
+        }
+        return false;
     }
 }

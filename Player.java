@@ -1,5 +1,6 @@
 public abstract class Player {
     private int colour;
+    private Player opponent;
 
     public Player(int colour) {
         this.colour = colour;
@@ -16,5 +17,13 @@ public abstract class Player {
             default:
                 return "Invalid colour";
         }
+    }
+
+    public void setOpponent(Player opponent) {
+        this.opponent = opponent;
+    }
+
+    public Player getOpponent() {
+        return this.opponent;
     }
 }

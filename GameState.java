@@ -116,6 +116,21 @@ public class GameState {
         return validMoves;
     }
 
+    public void move(Move move) {
+        Piece piece = move.getPiece();
+        for (Piece p : pieces) {
+            if (p.equals(piece)) {
+                p.setPosition(move.getPosition());
+                if (p.getColour() == 1 && p.getX() == 7) {
+                    p.promote();
+                }
+                else if (p.getColour() == -1 && p.getX() == 0) {
+                    p.promote();
+                }
+            }
+        }
+    }
+
     private boolean outOfBounds(int x, int y) {
         return (x < 0 || x > 7 || y < 0 || y > 7);
     }
