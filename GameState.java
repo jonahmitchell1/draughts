@@ -33,9 +33,9 @@ public class GameState {
     }
 
     
-    public Piece getPiece(int i, int j) {
+    public Piece getPiece(Position position) {
         for (Piece piece : pieces) {
-            if (piece.getX() == i && piece.getY() == j) {
+            if (piece.getX() == position.getX() && piece.getY() == position.getY()) {
                 return piece;
             }
         }
@@ -64,26 +64,26 @@ public class GameState {
 
         // check for valid moves in all directions
         int[][] directions = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+        Position newPosition;
         for (int[] dir : directions) {
             int dx = dir[0];
             int dy = dir[1];
 
             // check for valid moves in the forward direction
             if (colour == 1 || isKing) {
-                int newX = x + dx;
-                int newY = y + dy;
-                if (!outOfBounds(newX, newY)) {
-                    Piece targetPiece = getPiece(newX, newY);
+                newPosition = new Position(x + dx, y + dy);
+                if (!outOfBounds(newPosition)) {
+                    Piece targetPiece = getPiece(newPosition);
                     if (targetPiece == null) {
-                        validMoves.add(new Move(piece, new Position(newX, newY)));
+                        validMoves.add(new Move(piece, newPosition));
                     } 
                     else if (targetPiece.getColour() != colour) { // check for hop over opponent
-                        newX += dx;
-                        newY += dy;
-                        if (!outOfBounds(newX, newY)) {
-                            targetPiece = getPiece(newX, newY);
+                        newPosition.addX(dx);
+                        newPosition.addY(dy);
+                        if (!outOfBounds(newPosition)) {
+                            targetPiece = getPiece(newPosition);
                             if (targetPiece == null) {
-                                validMoves.add(new Move(piece, new Position(newX, newY)));
+                                validMoves.add(new Move(piece, newPosition));
                             }
                         }
                     }
@@ -92,20 +92,19 @@ public class GameState {
 
             // check for valid moves in the backward direction
             if (colour == -1 || isKing) {
-                int newX = x - dx;
-                int newY = y - dy;
-                if (!outOfBounds(newX, newY)) {
-                    Piece targetPiece = getPiece(newX, newY);
+                newPosition = new Position(x - dx, y - dy);
+                if (!outOfBounds(newPosition)) {
+                    Piece targetPiece = getPiece(newPosition);
                     if (targetPiece == null) {
-                        validMoves.add(new Move(piece, new Position(newX, newY)));
+                        validMoves.add(new Move(piece, newPosition));
                     } 
                     else if (targetPiece.getColour() != colour) { // check for hop over opponent
-                        newX -= dx;
-                        newY -= dy;
-                        if (!outOfBounds(newX, newY)) {
-                            targetPiece = getPiece(newX, newY);
+                        newPosition.addX(-dx);
+                        newPosition.addY(-dy);
+                        if (!outOfBounds(newPosition)) {
+                            targetPiece = getPiece(newPosition);
                             if (targetPiece == null) {
-                                validMoves.add(new Move(piece, new Position(newX, newY)));
+                                validMoves.add(new Move(piece, newPosition));
                             }
                         }
                     }
@@ -131,8 +130,9 @@ public class GameState {
         }
     }
 
-    private boolean outOfBounds(int x, int y) {
-        return (x < 0 || x > 7 || y < 0 || y > 7);
+    private boolean outOfBounds(Position position) {
+
+        return (position.getX() < 0 || position.getX() > 7 || position.getY() < 0 || position.getY() > 7);
     }
 
     public boolean gameOver() {
@@ -157,9 +157,16 @@ public class GameState {
         for (Piece piece : pieces) {
             board[piece.getX()][piece.getY()] = piece.getColour();
         }
+
         String str = "";
+        char r = 'a';
+        for (int i = 0; i < board[0].length; i++) {
+            str += "\t" + i + "\t";
+        }
+        str += "\n";
         for (int[] row : board) {
-            str += "|\t";
+            str += r + "|\t";
+            r++;
             for (int piece : row) {
                 str += piece + "\t|\t";
             }

@@ -41,13 +41,4 @@ public class Piece {
     public String toString(){
         return "Piece: " + colour + " at (" + this.getX() + ", " + this.getY() + ")";
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Piece) {
-            Piece p = (Piece) o;
-            return (this.colour == p.getColour() && this.position.equals(p.getPosition()));
-        }
-        return false;
-    }
 }

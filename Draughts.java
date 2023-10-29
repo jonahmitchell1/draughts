@@ -3,12 +3,15 @@ public class Draughts {
 
     public static void main(String[] args) {
         GameDriver driver;
+        GameState game;
         Player player1;
         Player player2;
 
-        player1 = new HumanPlayer(-1); // black
-        player2 = new HumanPlayer(1); // white
+        game = new GameState();
 
-        driver = new GameDriver(player1, player2);
+        player1 = new HumanPlayer(-1, game); // black
+        player2 = new HumanPlayer(1, game); // white
+
+        driver = new GameDriver(player1, player2, game);
     }
 }

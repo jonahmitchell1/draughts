@@ -1,16 +1,22 @@
 public abstract class Player {
     private int colour;
     private Player opponent;
+    protected GameState game;
 
-    public Player(int colour) {
+    public Player(int colour, GameState game) {
         this.colour = colour;
+        this.game = game;
     }
 
-    abstract public Move getMove();
+    abstract public Move getMove() throws InvalidMoveException;
 
-    public String getColour() {
-        switch(colour) {
-            case 0:
+    public int getColour() {
+        return this.colour;
+    }
+
+    public String getColourAsString() {
+        switch(this.colour) {
+            case -1:
                 return "Black";
             case 1:
                 return "White";
