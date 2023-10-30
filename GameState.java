@@ -3,7 +3,6 @@ import java.util.HashSet;
 
 public class GameState {
     private HashSet<Piece> pieces;
-    private int player;
 
     public GameState() {
         pieces = new HashSet<Piece>();
@@ -11,20 +10,24 @@ public class GameState {
     }
 
     public void reset() {
+        pieces.clear();
         int width = 8;
         int height = 8;
         // set piece positions
+        Piece toAdd;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < width; j++) {
                 if (i % 2 == 0) {
                     if (j % 2 == 1) {
-                        pieces.add(new Piece(1, new Position(i, j)));
+                        toAdd = new Piece(1, new Position(i, j));
+                        pieces.add(toAdd);
                         pieces.add(new Piece(-1, new Position(height - i - 1, width - j - 1)));
                     }
                 } 
                 else {
                     if (j % 2 == 0) {
-                        pieces.add(new Piece(1, new Position(i, j)));
+                        toAdd = new Piece(1, new Position(i, j));
+                        pieces.add(toAdd);
                         pieces.add(new Piece(-1, new Position(height - i - 1, width - j - 1)));
                     }
                 }
@@ -32,7 +35,6 @@ public class GameState {
         }
     }
 
-    
     public Piece getPiece(Position position) {
         for (Piece piece : pieces) {
             if (piece.getX() == position.getX() && piece.getY() == position.getY()) {
@@ -42,7 +44,7 @@ public class GameState {
         return null;
     }
 
-    public Set<Move> getValidMoves() {
+    public Set<Move> getValidMoves(int player) {
         Set<Move> validMoves = new HashSet<Move>();
         for (Piece piece : pieces) {
             if (piece.getColour() == player) {
@@ -117,17 +119,28 @@ public class GameState {
 
     public void move(Move move) {
         Piece piece = move.getPiece();
-        for (Piece p : pieces) {
-            if (p.equals(piece)) {
-                p.setPosition(move.getPosition());
-                if (p.getColour() == 1 && p.getX() == 7) {
-                    p.promote();
-                }
-                else if (p.getColour() == -1 && p.getX() == 0) {
-                    p.promote();
-                }
-            }
+
+        if (move.isHop()) {
+            Position pos = new Position((piece.getX() + move.getX()) / 2, (piece.getY() + move.getY()) / 2);
+            pieces.remove(getPiece(pos));
         }
+
+        piece.setPosition(move.getPosition());
+
+        if (piece.getColour() == 1 && piece.getX() == 7) {
+            piece.promote();
+        }
+        else if (piece.getColour() == -1 && piece.getX() == 0) {
+            piece.promote();
+        }
+    }
+
+    public String piecesToString() {
+        String str = "";
+        for (Piece piece : pieces) {
+            str += piece + "\n";
+        }
+        return str;
     }
 
     private boolean outOfBounds(Position position) {
@@ -137,13 +150,11 @@ public class GameState {
 
     public boolean gameOver() {
         for (Piece piece : pieces) {
-            if (piece.getColour() == player) {
-                if (getValidMoves(piece).isEmpty()) {
-                    return true;
-                }
+            if (!getValidMoves(piece).isEmpty()) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     @Override

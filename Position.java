@@ -31,4 +31,18 @@ public class Position {
         this.y += y;
     }
 
+    @Override
+    public String toString() {
+        return "(" + this.getX() + ", " + this.getY() + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Position) {
+            Position position = (Position) o;
+            return (this.x == position.getX() && this.y == position.getY());
+        }
+        return false;
+    }
+
 }

@@ -7,6 +7,7 @@ public class Piece {
         this.colour = colour;
         this.position = position;
         this.king = false;
+        System.out.println("Instantiated new piece: " + this.toString());
     }
 
     public void promote() {
@@ -39,6 +40,6 @@ public class Piece {
 
     @Override
     public String toString(){
-        return "Piece: " + colour + " at (" + this.getX() + ", " + this.getY() + ")";
+        return Integer.toHexString(this.hashCode()) + ": " + colour + " at (" + this.getX() + ", " + this.getY() + ")";
     }
 }

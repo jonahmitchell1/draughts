@@ -1,5 +1,4 @@
-import java.util.Scanner;
-import java.util.HashSet;
+import java.util.Set;
 
 public class GameDriver {
     private Player currentPlayer;
@@ -25,6 +24,8 @@ public class GameDriver {
             System.out.println(currentPlayer.getColour() + "'s turn");
             
             Move move;
+            Set<Move> validMoves = game.getValidMoves(currentPlayer.getColour());
+            boolean validMove;
             while (true) {
                 try {
                     move = currentPlayer.getMove();
@@ -33,13 +34,22 @@ public class GameDriver {
                     System.out.println(e.getMessage());
                     continue;
                 }
-                if (game.getValidMoves().contains(move)) {
+
+                validMove = false;
+                for (Move m : validMoves) {
+                    if (m.equals(move)) {
+                        validMove = true;
+                        break;
+                    }
+                }
+
+                if (validMove) {
                     game.move(move);
                     this.currentPlayer = this.currentPlayer.getOpponent();
                     break;
                 }
                 else {
-                    System.out.println("Invalid move. ");
+                    System.out.println("Invalid move. Please try again. ");
                 }
             }
         }
