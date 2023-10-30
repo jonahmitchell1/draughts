@@ -1,14 +1,34 @@
 import java.util.Set;
 import java.util.HashSet;
 
+/**
+ * Represents the state of a game of checkers.
+ * The game state includes the positions of all pieces on the board, and provides methods for moving pieces and checking for valid moves.
+ * The board is an 8x8 grid, with the top-left corner being a dark square.
+ * The pieces are arranged in three rows on each side of the board, with each row containing four pieces.
+ * The pieces are placed on the dark squares only.
+ * The player with the white pieces moves first.
+ * 
+ * @author jonahmitchell1
+ */
 public class GameState {
     private HashSet<Piece> pieces;
 
+    /**
+     * Constructs a new game state with no pieces.
+     */
     public GameState() {
         pieces = new HashSet<Piece>();
         reset();
     }
 
+    /**
+     * Resets the game state by clearing all pieces and setting up the initial piece positions.
+     * The board is an 8x8 grid, with the top-left corner being a dark square.
+     * The pieces are arranged in three rows on each side of the board, with each row containing four pieces.
+     * The pieces are placed on the dark squares only.
+     * The player with the white pieces moves first.
+     */
     public void reset() {
         pieces.clear();
         int width = 8;
@@ -35,6 +55,13 @@ public class GameState {
         }
     }
 
+    
+    /**
+     * Returns the piece at the specified position.
+     *
+     * @param position the position of the piece to retrieve
+     * @return the piece at the specified position, or null if no piece is found
+     */
     public Piece getPiece(Position position) {
         for (Piece piece : pieces) {
             if (piece.getX() == position.getX() && piece.getY() == position.getY()) {
@@ -44,6 +71,11 @@ public class GameState {
         return null;
     }
 
+    /**
+     * Returns a set of valid moves for the given player.
+     * @param player the player for whom to get the valid moves
+     * @return a set of valid moves for the given player
+     */
     public Set<Move> getValidMoves(int player) {
         Set<Move> validMoves = new HashSet<Move>();
         for (Piece piece : pieces) {
@@ -54,6 +86,14 @@ public class GameState {
         return validMoves;
     }
 
+    
+    /**
+     * Returns a set of valid moves for the given piece.
+     * 
+     * @param piece the piece to get valid moves for
+     * @return a set of valid moves for the given piece
+     */
+    
     public Set<Move> getValidMoves(Piece piece) {
         Set<Move> validMoves = new HashSet<Move>();
 
@@ -117,12 +157,22 @@ public class GameState {
         return validMoves;
     }
 
-    public void move(Move move) {
+    /**
+     * Moves a piece on the board according to the given move object.
+     * If the move is a hop, removes the piece that was jumped over.
+     * If the moved piece reaches the opposite end of the board, promotes it to a king.
+     * @param move The move object containing the piece to be moved and its destination.
+     * @return True if the move was a hop, false otherwise.
+     */
+    public boolean move(Move move) {
         Piece piece = move.getPiece();
+        boolean rtn = false;
 
         if (move.isHop()) {
             Position pos = new Position((piece.getX() + move.getX()) / 2, (piece.getY() + move.getY()) / 2);
             pieces.remove(getPiece(pos));
+            rtn = true;
+            // player has another go
         }
 
         piece.setPosition(move.getPosition());
@@ -133,30 +183,40 @@ public class GameState {
         else if (piece.getColour() == -1 && piece.getX() == 0) {
             piece.promote();
         }
+
+        return rtn;
     }
 
-    public String piecesToString() {
-        String str = "";
-        for (Piece piece : pieces) {
-            str += piece + "\n";
-        }
-        return str;
-    }
-
+    /**
+     * Checks if the given position is out of bounds.
+     * @param position the position to check
+     * @return true if the position is out of bounds, false otherwise
+     */
     private boolean outOfBounds(Position position) {
 
         return (position.getX() < 0 || position.getX() > 7 || position.getY() < 0 || position.getY() > 7);
     }
 
-    public boolean gameOver() {
+    /**
+     * Checks if the game is over.
+     * @param currentPlayer the player whose turn it is
+     * @return true if the game is over, false otherwise
+     */
+    public boolean gameOver(Player currentPlayer) {
         for (Piece piece : pieces) {
-            if (!getValidMoves(piece).isEmpty()) {
-                return false;
+            if (piece.getColour() == currentPlayer.getColour()) {
+                if (!getValidMoves(piece).isEmpty()) {
+                    return false;
+                }
             }
         }
         return true;
     }
 
+    /**
+     * Returns a string representation of the game state.
+     * @return a string representation of the game state
+     */
     @Override
     public String toString() {
         int[][] board = new int[8][8];

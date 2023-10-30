@@ -1,10 +1,25 @@
 import java.io.Console;
 
+/**
+ * Represents a human player in the game of draughts.
+ * @author jonahmitchell1
+ */
 public class HumanPlayer extends Player {
+
+    /**
+     * Creates a new instance of the HumanPlayer class.
+     * @param colour The colour of the player's pieces.
+     * @param game The game state object.
+     */
     public HumanPlayer(int colour, GameState game) {
         super(colour, game);
     }
 
+    /**
+     * Gets the move to be made by the player.
+     * @return The move to be made.
+     * @throws InvalidMoveException If an invalid move is entered.
+     */
     public Move getMove() throws InvalidMoveException {
         Console cons = System.console();
         Position origin, destination;
@@ -13,6 +28,10 @@ public class HumanPlayer extends Player {
         while (true){
             System.out.println("> Enter origin:");
             input = cons.readLine();  // Read user input
+            if (input.equals("skip")) {
+                move = new Move();
+                break;
+            }
             try {
                 origin = stringToPosition(input);  // Read user input
             }
@@ -45,6 +64,12 @@ public class HumanPlayer extends Player {
         return move;
     }
 
+    /**
+     * Converts a string representation of a position to a Position object.
+     * @param string The string representation of the position.
+     * @return The Position object.
+     * @throws InvalidMoveException if an invalid position is entered.
+     */
     public Position stringToPosition(String string) throws InvalidMoveException {
         String stringArray[] = string.split(",");
 
