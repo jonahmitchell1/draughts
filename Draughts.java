@@ -46,8 +46,8 @@ public class Draughts extends Application implements EventHandler<ActionEvent>{
     public void start(Stage primaryStage) {
         // Initialise game
         game = new GameState();
-        player1 = new HumanPlayer(-1, game); // black
-        player2 = new HumanPlayer(1, game); // white
+        player1 = new AlphaBetaPlayer(-1, 2); // black
+        player2 = new HumanPlayer(1); // white
         player1.setOpponent(player2);
         player2.setOpponent(player1);
         game.currentPlayer = player1;
@@ -103,7 +103,6 @@ public class Draughts extends Application implements EventHandler<ActionEvent>{
         Scene scene = new Scene(layout, 600, 600);
 
         primaryStage.setScene(scene);
-        System.out.println(game.currentPlayer.getColourAsString() + "'s turn");
         primaryStage.show();  
     }
 

@@ -1,4 +1,3 @@
-import java.io.Console;
 
 /**
  * Represents a human player in the game of draughts.
@@ -11,57 +10,8 @@ public class HumanPlayer extends Player {
      * @param colour The colour of the player's pieces.
      * @param game The game state object.
      */
-    public HumanPlayer(int colour, GameState game) {
-        super(colour, game);
-    }
-
-    /**
-     * Gets the move to be made by the player.
-     * @return The move to be made.
-     * @throws InvalidMoveException If an invalid move is entered.
-     */
-    public Move getMove() throws InvalidMoveException {
-        Console cons = System.console();
-        Position origin, destination;
-        String input;
-        Move move;
-        while (true){
-            System.out.println("> Enter origin:");
-            input = cons.readLine();  // Read user input
-            if (input.equals("skip")) {
-                move = new Move();
-                break;
-            }
-            try {
-                origin = stringToPosition(input);  // Read user input
-            }
-            catch (InvalidMoveException e) {
-                throw e;
-            }
-
-            System.out.println("> Enter destination:");
-            input = cons.readLine();  // Read user input
-            try {
-                destination = stringToPosition(input);  // Read user input
-            }
-            catch (InvalidMoveException e) {
-                throw e;
-            }
-
-            Piece originPiece = game.getPiece(origin);
-            if (originPiece == null) {
-                throw new InvalidMoveException("No piece at origin: " + origin);
-            }
-
-            if (originPiece.getColour() != this.getColour()) {
-                throw new InvalidMoveException("Not your piece at origin: " + origin);
-            }
-
-            move = new Move(originPiece, destination);
-            break;
-        }
-
-        return move;
+    public HumanPlayer(int colour) {
+        super(colour);
     }
 
     /**

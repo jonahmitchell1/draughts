@@ -8,24 +8,23 @@
 public abstract class Player {
     private int colour;
     private Player opponent;
-    protected GameState game;
 
     /**
      * Constructs a new Player object with the given colour and GameState.
      * @param colour The colour of the player.
-     * @param game The GameState object representing the game.
      */
-    public Player(int colour, GameState game) {
+    public Player(int colour) {
         this.colour = colour;
-        this.game = game;
     }
 
     /**
-     * Returns the next move made by the player.
-     * @return the next move made by the player
-     * @throws InvalidMoveException if the move is invalid
+     * Chooses a move for the player to make. Should be overridden
+     * @param game
+     * @return null
      */
-    abstract public Move getMove() throws InvalidMoveException;
+    public void chooseMove(GameState game) {
+        System.out.println(game.currentPlayer.getColourAsString() + "'s turn.");
+    }
 
     /**
      * Returns the colour of the player.

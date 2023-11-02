@@ -74,6 +74,15 @@ public class Piece {
         return this.position.getY();
     }
 
+    public int getValue() {
+        if (this.king) {
+            return 8 * this.colour;
+        }
+        else {
+            return 5 * this.colour;
+        }
+    }
+
     public Piece deepCopy() {
 
         Piece copy;

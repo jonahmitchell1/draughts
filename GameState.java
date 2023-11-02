@@ -229,7 +229,7 @@ public class GameState {
             System.out.println("Game over! " + currentPlayer.getOpponent().getColourAsString() + " wins!");
         }
         else {
-            System.out.println(currentPlayer.getColourAsString() + "'s turn");
+            currentPlayer.chooseMove(this);
         }
     }
 
@@ -270,7 +270,12 @@ public class GameState {
         }
         copy.currentPlayer = currentPlayer;
         copy.turnsTaken = turnsTaken;
-        copy.hopPiece = this.hopPiece.deepCopy();
+        if (this.hopPiece != null) {
+            copy.hopPiece = this.hopPiece.deepCopy();
+        }
+        else {
+            copy.hopPiece = null;
+        }
         return copy;
     }
 
