@@ -106,7 +106,6 @@ public class GameState {
         boolean isKing = piece.isKing();
 
         // check for valid moves in all directions
-        int[][] directions = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
         int[][] positiveXDirections = {{1, 1}, {1, -1}};
         int[][] negativeXDirections = {{-1, 1}, {-1, -1}};
         int dx, dy;
@@ -122,7 +121,9 @@ public class GameState {
                 if (!newPosition.isOutOfBounds()) {
                     Piece targetPiece = getPiece(newPosition);
                     if (targetPiece == null) {
-                        validMoves.add(new Move(piece, newPosition));
+                        if (turnsTaken < 1) {
+                            validMoves.add(new Move(piece, newPosition));
+                        }
                     } 
                     else if (targetPiece.getColour() != colour) { // check for hop over opponent
                         newPosition.addX(dx);
@@ -148,7 +149,9 @@ public class GameState {
                 if (!newPosition.isOutOfBounds()) {
                     Piece targetPiece = getPiece(newPosition);
                     if (targetPiece == null) {
-                        validMoves.add(new Move(piece, newPosition));
+                        if (turnsTaken < 1) {
+                            validMoves.add(new Move(piece, newPosition));
+                        }
                     } 
                     else if (targetPiece.getColour() != colour) { // check for hop over opponent
                         newPosition.addX(dx);
@@ -172,6 +175,9 @@ public class GameState {
         // disallow movement of other pieces when chaining hops
         if (turnsTaken >= 1) {
             if (move.getPiece() != hopPiece) {
+                return false;
+            }
+            else if (!move.isHop()) {
                 return false;
             }
         }
@@ -219,7 +225,12 @@ public class GameState {
                 this.turnsTaken = 0;
         }
         
-        System.out.println(currentPlayer.getColourAsString() + "'s turn");
+        if (gameOver()) {
+            System.out.println("Game over! " + currentPlayer.getOpponent().getColourAsString() + " wins!");
+        }
+        else {
+            System.out.println(currentPlayer.getColourAsString() + "'s turn");
+        }
     }
 
     /**
@@ -239,7 +250,7 @@ public class GameState {
      * Checks if the game is over.
      * @return true if the game is over, false otherwise
      */
-    public boolean gameOver(Player currentPlayer) {
+    public boolean gameOver() {
         if (this.getValidMoves().size() == 0) { // If the current player has no moves available to them.
             return true;
         }
@@ -249,6 +260,18 @@ public class GameState {
             }
         }
         return true;
+    }
+
+    public GameState deepCopy() {
+        GameState copy = new GameState();
+        copy.pieces = new HashSet<Piece>();
+        for (Piece piece : pieces) {
+            copy.pieces.add(piece.deepCopy());
+        }
+        copy.currentPlayer = currentPlayer;
+        copy.turnsTaken = turnsTaken;
+        copy.hopPiece = this.hopPiece.deepCopy();
+        return copy;
     }
 
     /**

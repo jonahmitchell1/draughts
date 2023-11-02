@@ -82,6 +82,10 @@ public class Position {
     public void addY(int y) {
         this.y += y;
     }
+    
+    public Position deepCopy() {
+        return new Position(this.getX(), this.getY());
+    }
 
     /**
      * Returns a string representation of the position in the format "(x, y)".

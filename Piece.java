@@ -74,6 +74,17 @@ public class Piece {
         return this.position.getY();
     }
 
+    public Piece deepCopy() {
+
+        Piece copy;
+        Position copyPosition = this.position.deepCopy();
+        copy = new Piece(this.colour, copyPosition);
+        if (this.king) {
+            copy.promote();
+        }
+        return copy;
+    }
+
     /**
      * Returns a string representation of the piece.
      * @return A string representation of the piece.

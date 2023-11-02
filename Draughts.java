@@ -71,21 +71,19 @@ public class Draughts extends Application implements EventHandler<ActionEvent>{
         String style;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                if (i % 2 == 0) {
-                    if (j % 2 == 1) {
-                        style = "-fx-background-color: #362419;"; //black
-                    }
-                    else {
+                switch ((i % 2) + (j % 2)) {
+                    case 0:
                         style = "-fx-background-color: #ffe5d8;"; //white
-                    }
-                } 
-                else {
-                    if (j % 2 == 0) {
+                        break;
+                    case 1:
                         style = "-fx-background-color: #362419;"; //black
-                    }
-                    else {
+                        break;
+                    case 2:
+                        style = "-fx-background-color: #ffe5d8;"; //black
+                        break;
+                    default:
                         style = "-fx-background-color: #ffe5d8;"; //white
-                    }
+                        break;
                 }
                 Button btn = new Button();
                 btn.setStyle(style);
