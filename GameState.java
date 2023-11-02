@@ -13,6 +13,9 @@ import java.util.HashSet;
  */
 public class GameState {
     private HashSet<Piece> pieces;
+    public Player currentPlayer;
+    public int turnsTaken;
+    private Piece hopPiece;
 
     /**
      * Constructs a new game state with no pieces.
@@ -24,7 +27,7 @@ public class GameState {
 
     /**
      * Resets the game state by clearing all pieces and setting up the initial piece positions.
-     * The board is an 8x8 grid, with the top-left corner being a dark square.
+     * The board is an 8x8 grid, with the top-left corner being a light square.
      * The pieces are arranged in three rows on each side of the board, with each row containing four pieces.
      * The pieces are placed on the dark squares only.
      * The player with the white pieces moves first.
@@ -34,20 +37,17 @@ public class GameState {
         int width = 8;
         int height = 8;
         // set piece positions
-        Piece toAdd;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < width; j++) {
                 if (i % 2 == 0) {
                     if (j % 2 == 1) {
-                        toAdd = new Piece(1, new Position(i, j));
-                        pieces.add(toAdd);
+                        pieces.add(new Piece(1, new Position(i, j)));
                         pieces.add(new Piece(-1, new Position(height - i - 1, width - j - 1)));
                     }
                 } 
                 else {
                     if (j % 2 == 0) {
-                        toAdd = new Piece(1, new Position(i, j));
-                        pieces.add(toAdd);
+                        pieces.add(new Piece(1, new Position(i, j)));
                         pieces.add(new Piece(-1, new Position(height - i - 1, width - j - 1)));
                     }
                 }
@@ -55,7 +55,6 @@ public class GameState {
         }
     }
 
-    
     /**
      * Returns the piece at the specified position.
      *
@@ -71,22 +70,24 @@ public class GameState {
         return null;
     }
 
+    public Set<Piece> getPieces() {
+        return pieces;
+    }
+
     /**
-     * Returns a set of valid moves for the given player.
-     * @param player the player for whom to get the valid moves
-     * @return a set of valid moves for the given player
+     * Returns a set of valid moves for the current player.
+     * @return a set of valid moves for the current player.
      */
-    public Set<Move> getValidMoves(int player) {
+    public Set<Move> getValidMoves() {
         Set<Move> validMoves = new HashSet<Move>();
         for (Piece piece : pieces) {
-            if (piece.getColour() == player) {
+            if (piece.getColour() == currentPlayer.getColour()) {
                 validMoves.addAll(getValidMoves(piece));
             }
         }
         return validMoves;
     }
 
-    
     /**
      * Returns a set of valid moves for the given piece.
      * 
@@ -106,15 +107,19 @@ public class GameState {
 
         // check for valid moves in all directions
         int[][] directions = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+        int[][] positiveXDirections = {{1, 1}, {1, -1}};
+        int[][] negativeXDirections = {{-1, 1}, {-1, -1}};
+        int dx, dy;
         Position newPosition;
-        for (int[] dir : directions) {
-            int dx = dir[0];
-            int dy = dir[1];
 
-            // check for valid moves in the forward direction
-            if (colour == 1 || isKing) {
+        // check for valid moves in the forward direction
+        if (colour == 1 || isKing) {
+            for (int[] dir : positiveXDirections) {
+                dx = dir[0];
+                dy = dir[1];
+
                 newPosition = new Position(x + dx, y + dy);
-                if (!outOfBounds(newPosition)) {
+                if (!newPosition.isOutOfBounds()) {
                     Piece targetPiece = getPiece(newPosition);
                     if (targetPiece == null) {
                         validMoves.add(new Move(piece, newPosition));
@@ -122,7 +127,7 @@ public class GameState {
                     else if (targetPiece.getColour() != colour) { // check for hop over opponent
                         newPosition.addX(dx);
                         newPosition.addY(dy);
-                        if (!outOfBounds(newPosition)) {
+                        if (!newPosition.isOutOfBounds()) {
                             targetPiece = getPiece(newPosition);
                             if (targetPiece == null) {
                                 validMoves.add(new Move(piece, newPosition));
@@ -131,19 +136,24 @@ public class GameState {
                     }
                 }
             }
+        }
 
-            // check for valid moves in the backward direction
-            if (colour == -1 || isKing) {
-                newPosition = new Position(x - dx, y - dy);
-                if (!outOfBounds(newPosition)) {
+        // check for valid moves in the backward direction
+        if (colour == -1 || isKing) {
+            for (int[] dir : negativeXDirections) {
+                dx = dir[0];
+                dy = dir[1];
+
+                newPosition = new Position(x + dx, y + dy);
+                if (!newPosition.isOutOfBounds()) {
                     Piece targetPiece = getPiece(newPosition);
                     if (targetPiece == null) {
                         validMoves.add(new Move(piece, newPosition));
                     } 
                     else if (targetPiece.getColour() != colour) { // check for hop over opponent
-                        newPosition.addX(-dx);
-                        newPosition.addY(-dy);
-                        if (!outOfBounds(newPosition)) {
+                        newPosition.addX(dx);
+                        newPosition.addY(dy);
+                        if (!newPosition.isOutOfBounds()) {
                             targetPiece = getPiece(newPosition);
                             if (targetPiece == null) {
                                 validMoves.add(new Move(piece, newPosition));
@@ -157,22 +167,42 @@ public class GameState {
         return validMoves;
     }
 
+    public boolean checkValidMove(Move move) {
+        Set<Move> validMoves = getValidMoves();
+        // disallow movement of other pieces when chaining hops
+        if (turnsTaken >= 1) {
+            if (move.getPiece() != hopPiece) {
+                return false;
+            }
+        }
+        // cannot move from a square with no piece
+        if (move.getPiece() == null) {
+            return false;
+        }
+        return validMoves.contains(move);
+    }
+
     /**
      * Moves a piece on the board according to the given move object.
-     * If the move is a hop, removes the piece that was jumped over.
+     * If the move is a hop, removes the piece that was jumped over and checks if the player can take another turn.
      * If the moved piece reaches the opposite end of the board, promotes it to a king.
      * @param move The move object containing the piece to be moved and its destination.
      * @return True if the move was a hop, false otherwise.
      */
-    public boolean move(Move move) {
+    public void move(Move move) {
+        boolean isHop = move.isHop();
         Piece piece = move.getPiece();
-        boolean rtn = false;
+        this.turnsTaken++;
 
-        if (move.isHop()) {
+        if (isHop) {
+            hopPiece = piece; //used for enforcing moving of the same piece in subsequent chained moves
             Position pos = new Position((piece.getX() + move.getX()) / 2, (piece.getY() + move.getY()) / 2);
+            System.out.println("Removing: "+ getPiece(pos));
             pieces.remove(getPiece(pos));
-            rtn = true;
-            // player has another go
+        }
+        else {
+            this.currentPlayer = this.currentPlayer.getOpponent();
+            this.turnsTaken = 0;
         }
 
         piece.setPosition(move.getPosition());
@@ -184,30 +214,38 @@ public class GameState {
             piece.promote();
         }
 
-        return rtn;
+        if (isHop && getValidMoves(piece).size() == 0) { // if player now has no available moves, change player.
+                this.currentPlayer = this.currentPlayer.getOpponent();
+                this.turnsTaken = 0;
+        }
+        
+        System.out.println(currentPlayer.getColourAsString() + "'s turn");
     }
 
     /**
-     * Checks if the given position is out of bounds.
-     * @param position the position to check
-     * @return true if the position is out of bounds, false otherwise
+     * Ends the current player's turn. They must had a turn first or have no moves available to them.
+     * @return True if the turn was ended, false otherwise.
      */
-    private boolean outOfBounds(Position position) {
-
-        return (position.getX() < 0 || position.getX() > 7 || position.getY() < 0 || position.getY() > 7);
+    public boolean endTurn() {
+        if ( (this.turnsTaken > 0) || (this.getValidMoves().size() == 0) ) {
+            this.currentPlayer = this.currentPlayer.getOpponent();
+            this.turnsTaken = 0;
+            return true;
+        }
+        return false;
     }
 
     /**
      * Checks if the game is over.
-     * @param currentPlayer the player whose turn it is
      * @return true if the game is over, false otherwise
      */
     public boolean gameOver(Player currentPlayer) {
-        for (Piece piece : pieces) {
+        if (this.getValidMoves().size() == 0) { // If the current player has no moves available to them.
+            return true;
+        }
+        for (Piece piece : pieces) { // If the current player has no pieces left.
             if (piece.getColour() == currentPlayer.getColour()) {
-                if (!getValidMoves(piece).isEmpty()) {
-                    return false;
-                }
+                return false;
             }
         }
         return true;
@@ -245,4 +283,5 @@ public class GameState {
         }
         return str;
     }
+
 }

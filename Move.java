@@ -88,6 +88,11 @@ public class Move {
         return "Move: " + piece + " to (" + position.getX() + ", " + position.getY() + ")";
     }
 
+    @Override
+    public int hashCode() {
+        return this.piece.hashCode() + this.position.hashCode();
+    }
+
     /**
      * Returns whether this move is equal to the given object.
      * @param obj the object to compare to
@@ -97,7 +102,10 @@ public class Move {
     public boolean equals(Object obj) {
         if (obj instanceof Move) {
             Move move = (Move) obj;
-            return (this.piece.equals(move.getPiece()) && this.position.equals(move.getPosition()));
+            boolean pieceEqual = this.piece.equals(move.getPiece());
+            boolean positionEqual = this.position.equals(move.getPosition());
+
+            return (pieceEqual && positionEqual);
         }
         return false;
     }

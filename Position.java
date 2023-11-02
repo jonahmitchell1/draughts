@@ -1,3 +1,4 @@
+import java.lang.Math;
 
 /**
  * The Position class represents a position on a 2D board.
@@ -16,6 +17,16 @@ public class Position {
     public Position(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    /**
+     * Checks if the given position is out of bounds.
+     * @param position the position to check
+     * @return true if the position is out of bounds, false otherwise
+     */
+    public boolean isOutOfBounds() {
+
+        return (this.getX() < 0 || this.getX() > 7 || this.getY() < 0 || this.getY() > 7);
     }
 
     /**
@@ -80,6 +91,13 @@ public class Position {
     @Override
     public String toString() {
         return "(" + this.getX() + ", " + this.getY() + ")";
+    }
+
+    @Override
+    public int hashCode() {
+        // uses coding bijection to map (x, y) to a unique integer
+        int result = (int) Math.round((Math.pow(2, this.x)) * (2 * this.y + 1) - 1);
+        return result;
     }
 
     /**
