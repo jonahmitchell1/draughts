@@ -10,8 +10,12 @@ public class HumanPlayer extends Player {
      * @param colour The colour of the player's pieces.
      * @param game The game state object.
      */
-    public HumanPlayer(int colour) {
-        super(colour);
+    public HumanPlayer(int colour, int timeDelay) {
+        super(colour, timeDelay);
+    }
+
+    public Move chooseMove(GameState game, Move hint) {
+        return hint;
     }
 
     /**

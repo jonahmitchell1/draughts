@@ -1,37 +1,40 @@
 import java.util.Set;
+import java.util.HashSet;
 
 public class AlphaBetaPlayer extends Player{
     private int searchDepth;
     private int alpha, beta;
 
-    public AlphaBetaPlayer(int colour, int searchDepth) {
-        super(colour);
+    public AlphaBetaPlayer(int colour, int timeDelay, int searchDepth) {
+        super(colour, timeDelay);
         this.searchDepth = searchDepth;
         this.alpha = Integer.MIN_VALUE;
         this.beta = Integer.MAX_VALUE;
     }
 
     @Override
-    public void chooseMove(GameState game) {
-        System.out.println("AlphaBetaPlayer choosing move");
-        Move best_move = null;
+    public Move chooseMove(GameState game, Move hint) {
+        Move best_move = null, testMove;
         int best_move_val = 0, move_val, v;
 
-        Set<Move> moves = game.getValidMoves();
         GameState testState = game.deepCopy();
-
-        System.out.println("BoardEval: " + boardEval(testState));
+        Set<Move> moves = testState.getValidMoves();
 
         if (game.currentPlayer.getColour() == 1) {
             v = Integer.MIN_VALUE;
             for (Move move : moves) {
                 testState = game.deepCopy();
-                testState.move(move);
+                testMove = convertMoveToState(testState, move);
+                if (testMove == null) {
+                    System.out.println("testMove is null");
+                    continue;
+                }
+                testState.move(testMove);
 
                 move_val = minimax_val(testState, this.searchDepth-1, best_move_val, beta);
 
                 if (move_val > best_move_val || best_move == null) {
-                    best_move = move;
+                    best_move = testMove;
                     best_move_val = move_val;
                 }
 
@@ -43,12 +46,13 @@ public class AlphaBetaPlayer extends Player{
             v = Integer.MAX_VALUE;
             for (Move move : moves) {
                 testState = game.deepCopy();
-                testState.move(move);
+                testMove = convertMoveToState(testState, move);
+                testState.move(testMove);
 
                 move_val = minimax_val(testState, this.searchDepth-1, alpha, best_move_val);
 
                 if (move_val < best_move_val || best_move == null) {
-                    best_move = move;
+                    best_move = testMove;
                     best_move_val = move_val;
                 }
                 
@@ -57,8 +61,19 @@ public class AlphaBetaPlayer extends Player{
             this.beta = best_move_val;
         }
 
-        System.out.println("Best move: " + best_move);
-        game.move(best_move);
+        return convertMoveToState(game, best_move);
+    }
+
+    public Move convertMoveToState(GameState state, Move move) {
+        Move rtn;
+        HashSet<Move> moves = (HashSet<Move>)state.getValidMoves();
+        for (Move m : moves) {
+            if (m.equals(move)) {
+                rtn = m;
+                return rtn;
+            }
+        }
+        return null;
     }
 
     /**
@@ -104,8 +119,8 @@ public class AlphaBetaPlayer extends Player{
             return boardEval(game);
         }
 
-        Set <Move> moves = game.getValidMoves();
         testState = game.deepCopy();
+        Set <Move> moves = testState.getValidMoves();
 
         // else if u is maximizing then
         if (game.currentPlayer.getColour() == 1) {

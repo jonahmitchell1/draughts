@@ -16,13 +16,19 @@ public class GameState {
     public Player currentPlayer;
     public int turnsTaken;
     private Piece hopPiece;
+    private String description;
 
     /**
      * Constructs a new game state with no pieces.
      */
-    public GameState() {
+    public GameState(String description) {
+        this.description = description;
         pieces = new HashSet<Piece>();
         reset();
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 
     /**
@@ -94,12 +100,12 @@ public class GameState {
      * @param piece the piece to get valid moves for
      * @return a set of valid moves for the given piece
      */
-    
     public Set<Move> getValidMoves(Piece piece) {
         Set<Move> validMoves = new HashSet<Move>();
 
-        int x = piece.getX();
-        int y = piece.getY();
+        Position origin = piece.getPosition();
+        int x = origin.getX();
+        int y = origin.getY();
         int colour = piece.getColour();
 
         // check if piece is a king
@@ -122,7 +128,7 @@ public class GameState {
                     Piece targetPiece = getPiece(newPosition);
                     if (targetPiece == null) {
                         if (turnsTaken < 1) {
-                            validMoves.add(new Move(piece, newPosition));
+                            validMoves.add(new Move(origin, newPosition));
                         }
                     } 
                     else if (targetPiece.getColour() != colour) { // check for hop over opponent
@@ -131,7 +137,7 @@ public class GameState {
                         if (!newPosition.isOutOfBounds()) {
                             targetPiece = getPiece(newPosition);
                             if (targetPiece == null) {
-                                validMoves.add(new Move(piece, newPosition));
+                                validMoves.add(new Move(origin, newPosition));
                             }
                         }
                     }
@@ -150,7 +156,7 @@ public class GameState {
                     Piece targetPiece = getPiece(newPosition);
                     if (targetPiece == null) {
                         if (turnsTaken < 1) {
-                            validMoves.add(new Move(piece, newPosition));
+                            validMoves.add(new Move(origin, newPosition));
                         }
                     } 
                     else if (targetPiece.getColour() != colour) { // check for hop over opponent
@@ -159,7 +165,7 @@ public class GameState {
                         if (!newPosition.isOutOfBounds()) {
                             targetPiece = getPiece(newPosition);
                             if (targetPiece == null) {
-                                validMoves.add(new Move(piece, newPosition));
+                                validMoves.add(new Move(origin, newPosition));
                             }
                         }
                     }
@@ -174,7 +180,7 @@ public class GameState {
         Set<Move> validMoves = getValidMoves();
         // disallow movement of other pieces when chaining hops
         if (turnsTaken >= 1) {
-            if (move.getPiece() != hopPiece) {
+            if (move.getOrigin() != hopPiece.getPosition()) {
                 return false;
             }
             else if (!move.isHop()) {
@@ -182,10 +188,22 @@ public class GameState {
             }
         }
         // cannot move from a square with no piece
-        if (move.getPiece() == null) {
+        if (getPiece(move.getOrigin()) == null) {
             return false;
         }
         return validMoves.contains(move);
+    }
+
+    public void printMoves(Set<Move> moves) {
+        for (Move move : moves) {
+            System.out.println(move);
+        }
+    }
+
+    public void printPieces() {
+        for (Piece piece : pieces) {
+            System.out.println(piece);
+        }
     }
 
     /**
@@ -196,14 +214,18 @@ public class GameState {
      * @return True if the move was a hop, false otherwise.
      */
     public void move(Move move) {
+        if (this.description.equals("game")){
+            System.out.println(this.description.toUpperCase() + ":\t" + this.currentPlayer.getColourAsString() + ": " + move);
+        }
         boolean isHop = move.isHop();
-        Piece piece = move.getPiece();
+        Piece piece = getPiece(move.getOrigin());
         this.turnsTaken++;
 
         if (isHop) {
             hopPiece = piece; //used for enforcing moving of the same piece in subsequent chained moves
-            Position pos = new Position((piece.getX() + move.getX()) / 2, (piece.getY() + move.getY()) / 2);
-            System.out.println("Removing: "+ getPiece(pos));
+            int x = (move.getOrigin().getX() + move.getDestination().getX()) / 2;
+            int y = (move.getOrigin().getY() + move.getDestination().getY()) / 2;
+            Position pos = new Position(x, y);
             pieces.remove(getPiece(pos));
         }
         else {
@@ -211,7 +233,7 @@ public class GameState {
             this.turnsTaken = 0;
         }
 
-        piece.setPosition(move.getPosition());
+        piece.setPosition(move.getDestination());
 
         if (piece.getColour() == 1 && piece.getX() == 7) {
             piece.promote();
@@ -220,16 +242,9 @@ public class GameState {
             piece.promote();
         }
 
-        if (isHop && getValidMoves(piece).size() == 0) { // if player now has no available moves, change player.
+        if (isHop && getValidMoves(piece).size() == 0) { // if player has no available moves after hop, change player.
                 this.currentPlayer = this.currentPlayer.getOpponent();
                 this.turnsTaken = 0;
-        }
-        
-        if (gameOver()) {
-            System.out.println("Game over! " + currentPlayer.getOpponent().getColourAsString() + " wins!");
-        }
-        else {
-            currentPlayer.chooseMove(this);
         }
     }
 
@@ -262,11 +277,25 @@ public class GameState {
         return true;
     }
 
+    public static void wait(int ms)
+    {
+        try
+        {
+            Thread.sleep(ms);
+        }
+        catch(InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     public GameState deepCopy() {
-        GameState copy = new GameState();
+        GameState copy = new GameState("copy");
+        Piece pieceCopy;
         copy.pieces = new HashSet<Piece>();
         for (Piece piece : pieces) {
-            copy.pieces.add(piece.deepCopy());
+            pieceCopy = piece.deepCopy();
+            copy.pieces.add(pieceCopy);
         }
         copy.currentPlayer = currentPlayer;
         copy.turnsTaken = turnsTaken;

@@ -94,6 +94,15 @@ public class Piece {
         return copy;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Piece) {
+            Piece p = (Piece) obj;
+            return (this.colour == p.getColour() && this.position.equals(p.getPosition()));
+        }
+        return false;
+    }
+
     /**
      * Returns a string representation of the piece.
      * @return A string representation of the piece.

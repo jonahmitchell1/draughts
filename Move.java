@@ -3,8 +3,8 @@
  * @author jonahmitchell1
  */
 public class Move {
-    private Piece piece;
-    private Position position;
+    private Position origin;
+    private Position destination;
     private boolean isSkip;
 
     /**
@@ -12,9 +12,9 @@ public class Move {
      * @param piece the piece being moved
      * @param position the position the piece is being moved to
      */
-    public Move(Piece piece, Position position) {
-        this.piece = piece;
-        this.position = position;
+    public Move(Position origin, Position destination) {
+        this.origin = origin;
+        this.destination = destination;
     }
 
     /**
@@ -22,8 +22,8 @@ public class Move {
      */
     public Move() {
         this.isSkip = true;
-        this.piece = null;
-        this.position = null;
+        this.origin = null;
+        this.destination = null;
     }
 
     /**
@@ -35,35 +35,15 @@ public class Move {
     }
 
     /**
-     * Returns the piece being moved.
-     * @return the piece being moved
-     */
-    public Piece getPiece() {
-        return this.piece;
-    }
-
-    /**
      * Returns the position the piece is being moved to.
      * @return the position the piece is being moved to
      */
-    public Position getPosition() {
-        return this.position;
+    public Position getOrigin() {
+        return this.origin;
     }
 
-    /**
-     * Returns the x-coordinate of the position the piece is being moved to.
-     * @return the x-coordinate of the position the piece is being moved to
-     */
-    public int getX() {
-        return this.position.getX();
-    }
-
-    /**
-     * Returns the y-coordinate of the position the piece is being moved to.
-     * @return the y-coordinate of the position the piece is being moved to
-     */
-    public int getY() {
-        return this.position.getY();
+    public Position getDestination() {
+        return this.destination;
     }
 
     /**
@@ -71,10 +51,10 @@ public class Move {
      * @return true if this move is a hop move, false otherwise
      */
     public boolean isHop() {
-        int x1 = this.piece.getX();
-        int y1 = this.piece.getY();
-        int x2 = this.position.getX();
-        int y2 = this.position.getY();
+        int x1 = this.origin.getX();
+        int y1 = this.origin.getY();
+        int x2 = this.destination.getX();
+        int y2 = this.destination.getY();
 
         return (Math.abs(x1 - x2) == 2 && Math.abs(y1 - y2) == 2);
     }
@@ -85,12 +65,16 @@ public class Move {
      */
     @Override
     public String toString() {
-        return "Move: " + piece + " to (" + position.getX() + ", " + position.getY() + ")";
+        return "Move piece at (" + origin.getX() + ", " + origin.getY() + ") to (" + destination.getX() + ", " + destination.getY() + ")";
     }
 
     @Override
     public int hashCode() {
-        return this.piece.hashCode() + this.position.hashCode();
+        // uses coding bijection to map hashCodes of the two positions to a unique integer
+        int originHashCode = origin.hashCode();
+        int destinationHashCode = destination.hashCode();
+        int result = (int) Math.round((Math.pow(2, originHashCode)) * (2 * destinationHashCode + 1) - 1);
+        return result;
     }
 
     /**
@@ -102,10 +86,7 @@ public class Move {
     public boolean equals(Object obj) {
         if (obj instanceof Move) {
             Move move = (Move) obj;
-            boolean pieceEqual = this.piece.equals(move.getPiece());
-            boolean positionEqual = this.position.equals(move.getPosition());
-
-            return (pieceEqual && positionEqual);
+            return ((this.origin.equals(move.getOrigin())) && (this.destination.equals(move.getDestination())));
         }
         return false;
     }

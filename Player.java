@@ -8,13 +8,15 @@
 public abstract class Player {
     private int colour;
     private Player opponent;
+    private int timeDelay; // in ms
 
     /**
      * Constructs a new Player object with the given colour and GameState.
      * @param colour The colour of the player.
      */
-    public Player(int colour) {
+    public Player(int colour, int timeDelay) {
         this.colour = colour;
+        this.timeDelay = timeDelay;
     }
 
     /**
@@ -22,8 +24,9 @@ public abstract class Player {
      * @param game
      * @return null
      */
-    public void chooseMove(GameState game) {
+    public Move chooseMove(GameState game, Move hint) {
         System.out.println(game.currentPlayer.getColourAsString() + "'s turn.");
+        return hint;
     }
 
     /**
@@ -32,6 +35,10 @@ public abstract class Player {
      */
     public int getColour() {
         return this.colour;
+    }
+
+    public int getTimeDelay() {
+        return this.timeDelay;
     }
 
     /**

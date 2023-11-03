@@ -5,12 +5,15 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
 import javafx.event.EventHandler;
 
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The Draughts class represents the main class of the Draughts game.
@@ -45,9 +48,9 @@ public class Draughts extends Application implements EventHandler<ActionEvent>{
     @Override
     public void start(Stage primaryStage) {
         // Initialise game
-        game = new GameState();
-        player1 = new AlphaBetaPlayer(-1, 2); // black
-        player2 = new HumanPlayer(1); // white
+        game = new GameState("game");
+        player1 = new HumanPlayer(-1, 0); // black
+        player2 = new AlphaBetaPlayer(1, 1000, 4); // white
         player1.setOpponent(player2);
         player2.setOpponent(player1);
         game.currentPlayer = player1;
@@ -93,8 +96,8 @@ public class Draughts extends Application implements EventHandler<ActionEvent>{
 
                 // add button press handling
                 btn.setOnAction(this);
-                    
                 grid[i][j] = btn;
+
                 layout.add(btn, j, i);
             }
         }
@@ -106,13 +109,43 @@ public class Draughts extends Application implements EventHandler<ActionEvent>{
         primaryStage.show();  
     }
 
+    public void startRound() {
+        Player player = game.currentPlayer;
+        System.out.println("-------------");
+        wait(game.currentPlayer.getTimeDelay());
+        if (player instanceof HumanPlayer) {
+            System.out.println("Human player's turn.");
+            return;
+        }
+        else {
+            System.out.println("AI player's turn.");
+            makePlayerMove(new Move());
+        }
+    }
+
+    public static void wait(int ms)
+    {
+        try
+        {
+            Thread.sleep(ms);
+        }
+        catch(InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+
     @Override
     public void handle(ActionEvent event) {
         Button btn = (Button) event.getSource();
         String[] coords = btn.getId().split(",");
         int x = Integer.parseInt(coords[0]);
         int y = Integer.parseInt(coords[1]);
-        generateMove(x, y);
+        Move move = generateMove(x, y);
+        if(move != null) {
+            makePlayerMove(move);
+        }
     }
 
     public void updateBoard() {
@@ -126,35 +159,68 @@ public class Draughts extends Application implements EventHandler<ActionEvent>{
         for (Piece piece : pieces) {
             int x = piece.getX();
             int y = piece.getY();
-            Color color;
+            Color pieceColor, textColor;
+            String str = null;
+            if (piece.isKing()) {
+                str = "K";
+            }
             if (piece.getColour() == 1) {
-                color = Color.WHITE;
+                pieceColor = Color.WHITE;
+                textColor = Color.BLACK;
             }
             else {
-                color = Color.BLACK;
+                pieceColor = Color.BLACK;
+                textColor = Color.WHITE;
             }
-            grid[x][y].setGraphic(new Circle (15, 15, 30, color));
+
+            StackPane pane = new StackPane();
+            Text text = new Text(str);
+            text.setFill(textColor);
+                
+            pane.getChildren().addAll(new Circle (15, 15, 30, pieceColor), text);
+
+            grid[x][y].setGraphic(pane);
         }
     }
 
-    public void generateMove(int x, int y) {
+    private void makePlayerMove(Move hint) {
+        //Add artificial "choice time" for AI player
+        if (game.currentPlayer instanceof AlphaBetaPlayer) {
+            System.out.println("AI player is thinking...");
+        }
+
+        Player player = game.currentPlayer;
+        Move playerMove;
+        HashSet<Move> validMoves = (HashSet<Move>)game.getValidMoves();
+        playerMove = player.chooseMove(game, hint); //hint used for player selection of move
+        if (!validMoves.contains(playerMove)) {
+            System.out.println("Invalid move: " + playerMove);
+            return;
+        }
+
+        game.move(playerMove);
+
+        updateBoard();
+
+        if (game.gameOver()) {
+            System.out.println("Game over! " + game.currentPlayer.getOpponent().getColourAsString() + " wins!");
+        }
+        else {
+            startRound();
+        }
+    }
+
+    public Move generateMove(int x, int y) {
         if (origin == null) {
             origin = new Position(x, y);
+            return null;
         }
         else {
             destination = new Position(x, y);
-            Piece targetPiece = game.getPiece(origin);
-            Move proposedMove = new Move(targetPiece, destination);
-            if (game.checkValidMove(proposedMove)) {
-                System.out.println("Made move: " + proposedMove);
-                game.move(proposedMove);
-                updateBoard();
-            }
-            else {
-                System.out.println("Invalid move: " + proposedMove);
-            }
+            Move proposedMove = new Move(origin, destination);
             origin = null;
             destination = null;
+            return proposedMove;
         }
     }
 }
